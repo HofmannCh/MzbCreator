@@ -58,22 +58,10 @@ class Window:
         self.markerLine.set_data(r.xMarkedPoints, r.yMarkedPoints)
         self.canvas.draw()
 
-    def samleData(self):
-        x = 0
-        for d in self.route.data:
-            x += d.dis
-            if d.index not in [0, 11, 59 , 118, 126, 143, 155, 186, 230, 240, 269, 459, 486, 491]:
-                continue
-            d.div = True
-            self.route.xMarkedPoints.append(x)
-            self.route.yMarkedPoints.append(d.ele)
-
     def onImport(self):
         fileName = tkinter.filedialog.askopenfilename(
-            filetypes=(("GPX files", "*.gpx"), ("all files", "*.*")))
+            filetypes=[("GPX files", "*.gpx"), ("All files", "*.*")])
         self.route = r = Route(fileName)
-
-        # self.samleData()
 
         if self.fill_between:
             self.fill_between.remove()
@@ -115,12 +103,17 @@ class Window:
                     + "\n"
                     )
 
-        # with tkinter.filedialog.asksaveasfile() as f:
-        #     f.write(txt.rstrip())
-        print("\t".join([
+        titles = "\t".join([
             "Index", "Cords         ", "MAS", "Rel MAS", "Grad", "Dis", "Lkm", "Dis tot", "Lkm tot"
-        ]))
-        print(txt.rstrip())
+        ])
+        fileTypes = [("CSV", "*.csv"), ("All files", "*.*")]
+        try:
+            with tkinter.filedialog.asksaveasfile(filetypes = fileTypes, defaultextension = ".csv", initialfile=self.route.title) as f:
+                f.write(titles + "\n" + txt.rstrip())
+        except:
+            pass
+
+        print(titles + "\n"+txt.rstrip())
         print()
 
     def onKeyPress(self, e):

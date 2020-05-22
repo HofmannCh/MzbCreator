@@ -20,13 +20,17 @@ class Route:
             pass
 
         root = ET.fromstring(txt)
+        
         metaName = root.find(".//metadata/name")
         trkName = root.find(".//trk/name")
         if metaName != None and metaName.text:
             title = metaName.text
         elif trkName != None and trkName.text:
             title = trkName.text
+        else:
+            title = file
         print(title)
+
         trkseg = root.find(".//trkseg")
 
         data = []
