@@ -1,4 +1,3 @@
-import xml.etree.ElementTree as ET
 import helper
 import copy
 from wg84Corrdinates import Wg84Corrdinates, Wg84CorrdinatesProfile
@@ -6,71 +5,25 @@ from wg84Corrdinates import Wg84Corrdinates, Wg84CorrdinatesProfile
 
 class Route:
     def __init__(self, file):
+        [self.data, self.title] = helper.parse(file)
 
-        with open(file, "r", encoding="utf8") as f:
-            txt = f.read().strip()
-
-        # Remove sml namespace
-        pat = "xmlns="
-        try:  # VaueException if Namespace not found, so do nothing
-            i1 = txt.index(pat)
-            i2 = txt.index('"', i1 + len(pat) + 1)
-            txt = txt[0:i1] + txt[i2 + 2:]
-        except:
-            pass
-
-        root = ET.fromstring(txt)
-        
-        metaName = root.find(".//metadata/name")
-        trkName = root.find(".//trk/name")
-        if metaName != None and metaName.text:
-            title = metaName.text
-        elif trkName != None and trkName.text:
-            title = trkName.text
-        else:
-            title = file
-        print(title)
-
-        trkseg = root.find(".//trkseg")
-
-        data = []
-
-        for i, pt in enumerate(trkseg.findall(".//trkpt")):
-            lat = float(pt.get("lat"))
-            lon = float(pt.get("lon"))
-            ele = float(pt.find("ele").text)
-
-            if(i > 0):
-                dis = helper.distance(data[i-1].lat, data[i-1].lon, lat, lon)
-            else:
-                dis = 0
-
-            data.append(Wg84Corrdinates(i, lat, lon, ele, dis))
-
-        if len(data) <= 0:
+        if not self.data:
             raise Exception("Data cannot be empty")
 
-        yAxis = [x.ele for x in data]
-        xAxis = []
+        self.yPoints = [x.ele for x in self.data]
+        self.xPoints = []
         last = 0
-        for d in data:
+        for d in [x for x in self.data if x.dis != None]:
             last += d.dis
-            xAxis.append(last)
-
-        self.title = title
-        self.xmlRoot = root
-
-        self.data = data
-        self.xPoints = xAxis
-        self.yPoints = yAxis
+            self.xPoints.append(last)
 
         self.xMarkedPoints = []
         self.yMarkedPoints = []
 
-        self.xMin = min(xAxis)
-        self.xMax = max(xAxis)
-        self.yMin = min(yAxis)
-        self.yMax = max(yAxis)
+        self.xMin = min(self.xPoints)
+        self.xMax = max(self.xPoints)
+        self.yMin = min(self.yPoints)
+        self.yMax = max(self.yPoints)
 
     def calculateProfile(self, includeFirstAndLast):
         currentData = copy.deepcopy(self.data)

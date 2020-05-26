@@ -8,6 +8,7 @@ class Wg84Corrdinates:
         self.index = index
         self.div = False
 
+
 class Wg84CorrdinatesProfile:
     def __init__(self, cords, relDis, relDisT, eleDiv, grad, lkm, lkmT):
         self.cords = cords

@@ -1,4 +1,5 @@
 import tkinter.filedialog
+from tkinter.messagebox import showerror
 import tkinter as tk
 
 from route import Route
@@ -60,17 +61,30 @@ class Window:
 
     def onImport(self):
         fileName = tkinter.filedialog.askopenfilename(
-            filetypes=[("GPX files", "*.gpx"), ("All files", "*.*")])
-        self.route = r = Route(fileName)
+            filetypes=[("Corrdinates files", "*.gpx;*.kml"), ("All files", "*.*")])
 
-        if self.fill_between:
+        if self.fill_between != None:
             self.fill_between.remove()
-        self.fill_between = self.plt.fill_between(
-            r.xPoints, r.yPoints, facecolor="#ff000020")
-        self.heightLine.set_data(r.xPoints, r.yPoints)
-        self.markerLine.set_data(r.xMarkedPoints, r.yMarkedPoints)
-        dif = abs(r.yMin - r.yMax) * 0.2
-        self.plt.axis([r.xMin, r.xMax, r.yMin - dif, r.yMax + dif])
+            self.fill_between = None
+
+        try:
+            self.route = r = Route(fileName)
+            self.fill_between = self.plt.fill_between(
+                r.xPoints, r.yPoints, facecolor="#ff000020")
+            self.heightLine.set_data(r.xPoints, r.yPoints)
+            self.markerLine.set_data(r.xMarkedPoints, r.yMarkedPoints)
+            dif = abs(r.yMin - r.yMax) * 0.2
+            self.plt.axis([r.xMin, r.xMax, r.yMin - dif, r.yMax + dif])
+        except Exception as e:
+            if self.fill_between != None:
+                self.fill_between.remove()
+                self.fill_between = None
+            self.heightLine.set_data([], [])
+            self.markerLine.set_data([], [])
+            self.plt.axis([0, 10, 100, 500])
+            print(e)
+            showerror("Error", e.__str__())
+
         self.canvas.draw()
 
     def onExport(self):
@@ -106,9 +120,8 @@ class Window:
         titles = "\t".join([
             "Index", "Cords         ", "MAS", "Rel MAS", "Grad", "Dis", "Lkm", "Dis tot", "Lkm tot"
         ])
-        fileTypes = [("CSV", "*.csv"), ("All files", "*.*")]
         try:
-            with tkinter.filedialog.asksaveasfile(filetypes = fileTypes, defaultextension = ".csv", initialfile=self.route.title) as f:
+            with tkinter.filedialog.asksaveasfile(filetypes=[("CSV", "*.csv"), ("All files", "*.*")], defaultextension=".csv", initialfile=self.route.title) as f:
                 f.write(titles + "\n" + txt.rstrip())
         except:
             pass
@@ -131,7 +144,7 @@ class Window:
 
     def __buildGuiAndRun(self):
         self.win = tk.Tk()
-        self.win.wm_title("GPX profile")
+        self.win.wm_title("Corrdinates profile")
 
         self.fig = Figure()
         self.plt = self.fig.add_subplot()
